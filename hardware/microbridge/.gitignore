@@ -7,3 +7,17 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Firmware compilation files #
+##############################
+*.eep
+*.cof
+*.elf
+*.map
+*.sym
+*.lss
+*.o
+*.lst
+*.s
+*.d
+.dep/*

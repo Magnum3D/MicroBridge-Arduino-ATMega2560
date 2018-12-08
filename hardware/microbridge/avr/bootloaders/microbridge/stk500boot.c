@@ -115,6 +115,19 @@ LICENSE:
 #include <string.h>
 #include "pff.h"
 
+#ifndef SD_FIRMWARE_UPDATE_EEPROM_ADDR
+	#define SD_FIRMWARE_UPDATE_EEPROM_ADDR (uint8_t *)0x3FF
+#endif
+#ifndef SD_FIRMWARE_UPDATE_ACTIVE_VALUE
+        #define SD_FIRMWARE_UPDATE_ACTIVE_VALUE 0xF0
+#endif
+#ifndef SD_FIRMWARE_UPDATE_INACTIVE_VALUE
+        #define SD_FIRMWARE_UPDATE_INACTIVE_VALUE 0xFF
+#endif
+#ifndef SD_FIRMWARE_UPDATE_FILE
+        #define SD_FIRMWARE_UPDATE_FILE "firmware.bin"
+#endif
+
 void flash_erase (DWORD);				/* Erase a flash page (asmfunc.S) */
 void flash_write (DWORD, const BYTE*);	/* Program a flash page (asmfunc.S) */
 
@@ -1145,12 +1158,11 @@ int main(void)
 	}
     
     if(boot_state == 2){
-        if(eeprom_read_byte(0x1FF) == 0xF0){
+        if(eeprom_read_byte(SD_FIRMWARE_UPDATE_EEPROM_ADDR) == SD_FIRMWARE_UPDATE_ACTIVE_VALUE){
            pf_mount(&Fatfs);	/* Initialize file system */
-           if(pf_open("firmware.bin") == FR_OK){
+           if(pf_open(SD_FIRMWARE_UPDATE_FILE) == FR_OK){
                DWORD fa;	/* Flash address */
                WORD br;	/* Bytes read */
-               uint8_t i = 0;
                sendchar(0x0d);
                sendchar(0x0a);
                for (fa = 0; fa < 0x3E000; fa += SPM_PAGESIZE) {	/* Update all application pages */
@@ -1164,7 +1176,7 @@ int main(void)
                sendchar(0x0d);
                sendchar(0x0a);
                check = 0;
-               eeprom_write_byte (0x1FF, 0xFF);
+               eeprom_write_byte (SD_FIRMWARE_UPDATE_EEPROM_ADDR, SD_FIRMWARE_UPDATE_INACTIVE_VALUE);
            }
         }
     }
